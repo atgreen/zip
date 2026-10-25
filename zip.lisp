@@ -10,18 +10,24 @@
 
 (in-package :zip)
 
+#+egcl
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (require :egcl-posix))
+
 (defun file-mode (pathname)
   #+(or windows mswindows)
   #o640
   #-(or windows mswindows)
   (progn
-    #-(or sbcl allegro ccl)
+    #-(or egcl sbcl allegro ccl)
     (error "ZIP::FILE-MODE not ported")
     #+ccl
     (multiple-value-bind (win mode size mtime inode uid blocksize rmtime gid dev)
         (ccl::%stat (ccl:native-translated-namestring pathname))
       (declare (ignore win size mtime inode uid blocksize rmtime gid dev))
       mode)
+    #+egcl
+    (egcl-posix:stat-mode (egcl-posix:stat pathname))
     #+sbcl
     (sb-posix:stat-mode (sb-posix:stat pathname))
     #+allegro
